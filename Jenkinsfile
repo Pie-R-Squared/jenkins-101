@@ -23,9 +23,10 @@ pipeline {
             steps {
                 echo "Testing.."
                 sh '''
-                cd myapp
-                python3 hello.py
-                python3 hello.py --name=Brad
+                    cd myapp
+                    . venv/bin/activate
+                    python3 hello.py
+                    python3 hello.py --name=Aneeka
                 '''
             }
         }
