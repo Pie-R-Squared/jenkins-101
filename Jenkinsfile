@@ -1,7 +1,7 @@
 pipeline {
     agent { 
         node {
-            label 'docker-agent-python'
+            label 'docker-agent-python'  // your existing node
         }
     }
     triggers {
@@ -10,31 +10,24 @@ pipeline {
     stages {
         stage('Build') {
             steps {
+                // Run inside python docker container
                 sh '''
-                    cd myapp
-                    # Install virtualenv locally for current user
-                    python3 -m pip install --user virtualenv
-                    
-                    # Add local bin to PATH for this shell session
-                    export PATH=$HOME/.local/bin:$PATH
-                    
-                    # Create virtual environment using virtualenv (not system venv)
-                    virtualenv venv
-                    
-                    # Activate and install requirements
-                    . venv/bin/activate
-                    pip install -r requirements.txt
+                    docker run --rm -v $PWD/myapp:/app -w /app python:3.11-slim bash -c "
+                        python3 -m venv venv &&
+                        . venv/bin/activate &&
+                        pip install -r requirements.txt
+                    "
                 '''
             }
         }
         stage('Test') {
             steps {
-                echo "Testing.."
                 sh '''
-                    cd myapp
-                    . venv/bin/activate
-                    python3 hello.py
-                    python3 hello.py --name=Brad
+                    docker run --rm -v $PWD/myapp:/app -w /app python:3.11-slim bash -c "
+                        . venv/bin/activate &&
+                        python hello.py &&
+                        python hello.py --name=Brad
+                    "
                 '''
             }
         }
