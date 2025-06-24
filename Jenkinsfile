@@ -2,8 +2,8 @@ pipeline {
     agent { 
         node {
             label 'docker-agent-python'
-            }
-      }
+        }
+    }
     triggers {
         pollSCM '* * * * *'
     }
@@ -12,7 +12,16 @@ pipeline {
             steps {
                 sh '''
                     cd myapp
-                    python3 -m venv venv
+                    # Install virtualenv locally for current user
+                    python3 -m pip install --user virtualenv
+                    
+                    # Add local bin to PATH for this shell session
+                    export PATH=$HOME/.local/bin:$PATH
+                    
+                    # Create virtual environment using virtualenv (not system venv)
+                    virtualenv venv
+                    
+                    # Activate and install requirements
                     . venv/bin/activate
                     pip install -r requirements.txt
                 '''
@@ -22,9 +31,10 @@ pipeline {
             steps {
                 echo "Testing.."
                 sh '''
-                cd myapp
-                python3 hello.py
-                python3 hello.py --name=Brad
+                    cd myapp
+                    . venv/bin/activate
+                    python3 hello.py
+                    python3 hello.py --name=Brad
                 '''
             }
         }
@@ -32,7 +42,7 @@ pipeline {
             steps {
                 echo 'Deliver....'
                 sh '''
-                echo "doing delivery stuff.."
+                    echo "doing delivery stuff.."
                 '''
             }
         }
