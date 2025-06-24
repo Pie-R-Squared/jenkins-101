@@ -1,33 +1,31 @@
 pipeline {
     agent { 
         node {
-            label 'docker-agent-python'  // your existing node
-        }
-    }
+            label 'docker-agent-python'
+            }
+      }
     triggers {
         pollSCM '* * * * *'
     }
     stages {
         stage('Build') {
             steps {
-                // Run inside python docker container
                 sh '''
-                    docker run --rm -v $PWD/myapp:/app -w /app python:3.11-slim bash -c "
-                        python3 -m venv venv &&
-                        . venv/bin/activate &&
-                        pip install -r requirements.txt
-                    "
+                    cd myapp
+                    python3 -m venv venv || python -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
                 '''
             }
         }
         stage('Test') {
             steps {
+                echo "Testing.."
                 sh '''
-                    docker run --rm -v $PWD/myapp:/app -w /app python:3.11-slim bash -c "
-                        . venv/bin/activate &&
-                        python hello.py &&
-                        python hello.py --name=Brad
-                    "
+                cd myapp
+                python3 hello.py
+                python3 hello.py --name=Brad
                 '''
             }
         }
@@ -35,7 +33,7 @@ pipeline {
             steps {
                 echo 'Deliver....'
                 sh '''
-                    echo "doing delivery stuff.."
+                echo "doing delivery stuff.."
                 '''
             }
         }
